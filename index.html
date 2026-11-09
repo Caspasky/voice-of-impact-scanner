@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice of Impact | Staff Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f5f9;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      max-width: 520px;
+      margin: 25px auto;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 18px #0001;
+    }
+    h2 { color: #172b50; }
+    #reader {
+      width: 100%;
+      margin: 20px auto;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    button {
+      background: #172b50;
+      color: white;
+      border: 0;
+      padding: 14px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 8px;
+      width: 100%;
+      font-size: 16px;
+    }
+    #continue {
+      display: none;
+      background: #16834a;
+    }
+    #message {
+      padding: 12px;
+      background: #eef2f8;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>VOICE OF IMPACT 2026</h2>
+    <p> NARRATIVE NEXUS · STAFF QR SCANNER</p>
+    <p>08–14 December 2026 · Moga Sec School</p>
+
+    <div id="reader"></div>
+
+    <button id="start" onclick="startScanner()">
+      START QR SCANNER
+    </button>
+
+    <p id="message">Ready to scan a participant's invitation.</p>
+
+    <button id="continue" onclick="continueToPortal()">
+      CONTINUE TO STAFF CHECK-IN
+    </button>
+  </div>
+
+<script>
+  let scanner;
+  let staffPortal = "https://script.google.com/macros/s/AKfycbxcdbHK91otC2fWgqHqUvJEj1kc9vji2PaguByrZfqfZpBbeOq_qF1QhnlAPBP8PptY/exec";
+  let scannedToken = "";
+
+  function startScanner() {
+    document.getElementById("message").textContent =
+      "Requesting camera access...";
+
+    scanner = new Html5Qrcode("reader");
+
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 240, height: 240 } },
+      function(decodedText) {
+        try {
+          const scannedURL = new URL(decodedText);
+          scannedToken = scannedURL.searchParams.get("t") || "";
+        } catch (e) {
+          scannedToken = decodedText.trim();
+        }
+
+        if (!scannedToken || scannedToken.length < 40) {
+          document.getElementById("message").textContent =
+            "Invalid invitation QR. Please scan the official participant QR.";
+          return;
+        }
+
+        scanner.stop().catch(() => {});
+
+        document.getElementById("message").textContent =
+          "QR detected successfully. Continue to staff verification.";
+
+        document.getElementById("continue").style.display = "block";
+        document.getElementById("start").style.display = "none";
+      }
+    ).catch(function(error) {
+      document.getElementById("message").textContent =
+        "Camera error: " + error;
+    });
+  }
+
+  function continueToPortal() {
+    if (!scannedToken) return;
+
+    window.location.href =
+      staffPortal + "?token=" + encodeURIComponent(scannedToken);
+  }
+</script>
+</body>
+</html>
